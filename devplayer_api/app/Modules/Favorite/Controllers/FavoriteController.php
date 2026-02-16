@@ -129,7 +129,7 @@ class FavoriteController extends Controller
 
                 return [
                     'id' => $favorite->channel->id,
-                    'uuid' => $favorite->uuid,
+                    'uuid' => $favorite->channel->uuid,  // Usar UUID do channel, não do favorite
                     'name' => $favorite->channel->name,
                     'logo_url' => $favorite->channel->logo_url,
                     'stream_url' => $favorite->channel->stream_url,

@@ -17,7 +17,7 @@
 
         <!-- Modal Content -->
         <div
-          class="relative z-10 w-full max-w-4xl max-h-[90vh] mx-4 bg-neutral-900 rounded-lg overflow-hidden shadow-2xl"
+          class="relative z-10 w-full max-h-[90vh] mx-4 bg-neutral-900 rounded-lg overflow-hidden shadow-2xl"
           @click.stop
         >
           <!-- Close Button -->

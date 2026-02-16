@@ -297,4 +297,84 @@ class ChannelService extends BaseService
         ->with(['streams', 'category'])
         ->get();
     }
+
+    /**
+     * Update series metadata from IPTV data
+     */
+    public function updateSeriesMetadata(Channel $channel, array $seriesData, ?string $fallbackImageUrl = null): bool
+    {
+        $metadata = $channel->metadata ?? [];
+
+        // Update series info
+        $metadata['description'] = $seriesData['description'] ?? $seriesData['plot'] ?? $metadata['description'] ?? null;
+        $metadata['plot'] = $seriesData['plot'] ?? $metadata['plot'] ?? null;
+        $metadata['rating'] = $seriesData['rating'] ?? $metadata['rating'] ?? null;
+        $metadata['release_date'] = $seriesData['release_date'] ?? $metadata['release_date'] ?? null;
+        $metadata['genre'] = $seriesData['genre'] ?? $metadata['genre'] ?? null;
+        $metadata['director'] = $seriesData['director'] ?? $metadata['director'] ?? null;
+        $metadata['cast'] = $seriesData['cast'] ?? $metadata['cast'] ?? null;
+        $metadata['episodes_count'] = $seriesData['episodes_count'] ?? $metadata['episodes_count'] ?? 0;
+        $metadata['last_synced_at'] = now()->toIso8601String();
+
+        // Store image URLs in metadata
+        $metadata['images'] = [
+            'cover' => $seriesData['cover'] ?? null,
+            'poster' => $seriesData['poster'] ?? null,
+            'backdrop' => $seriesData['backdrop'] ?? $seriesData['backdrop_path'] ?? null,
+        ];
+
+        // Validate and update logo_url
+        $newLogoUrl = $this->selectBestImageUrl(
+            $seriesData['cover'] ?? null,
+            $seriesData['backdrop'] ?? $seriesData['backdrop_path'] ?? null,
+            $seriesData['poster'] ?? null,
+            $fallbackImageUrl,
+            $channel->logo_url
+        );
+
+        if ($newLogoUrl && $this->isImageValid($newLogoUrl)) {
+            $channel->logo_url = $newLogoUrl;
+        } elseif ($fallbackImageUrl && $this->isImageValid($fallbackImageUrl)) {
+            $channel->logo_url = $fallbackImageUrl;
+        }
+
+        $channel->metadata = $metadata;
+        return $channel->save();
+    }
+
+    /**
+     * Select best image URL from available options
+     */
+    protected function selectBestImageUrl(?string ...$urls): ?string
+    {
+        foreach ($urls as $url) {
+            if ($url && filter_var($url, FILTER_VALIDATE_URL)) {
+                return $url;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Check if image URL is valid and not 404
+     */
+    protected function isImageValid(?string $url): bool
+    {
+        if (!$url || !filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        try {
+            $headers = @get_headers($url, 1);
+            if (!$headers) {
+                return false;
+            }
+
+            $statusLine = $headers[0] ?? '';
+            return !str_contains($statusLine, '404');
+        } catch (\Exception $e) {
+            // If we can't verify, assume it's valid
+            return true;
+        }
+    }
 }

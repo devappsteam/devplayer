@@ -74,10 +74,27 @@ class ChannelController extends Controller
                 ->map(function ($seasonEpisodes, $seasonNumber) {
                     return [
                         'season' => (int) $seasonNumber,
-                        'episodes' => EpisodeResource::collection($seasonEpisodes)->resolve(),
+                        'episodes' => collect($seasonEpisodes)->map(function ($episode) {
+                            return [
+                                'id' => $episode['id'],
+                                'uuid' => $episode['uuid'],
+                                'season' => $episode['season'],
+                                'episode' => $episode['episode'],
+                                'name' => $episode['name'],
+                                'full_title' => sprintf('S%02dE%02d - %s', $episode['season'], $episode['episode'], $episode['name']),
+                                'description' => $episode['description'],
+                                'plot' => $episode['plot'],
+                                'aired_date' => $episode['aired_date'],
+                                'duration' => $episode['duration'],
+                                'thumbnail_url' => $episode['thumbnail_url'],
+                                'stream_url' => $episode['metadata']['stream_url'] ?? null,
+                                'is_active' => $episode['is_active'],
+                            ];
+                        })->toArray(),
                     ];
                 })
-                ->values();
+                ->values()
+                ->toArray();
 
             return $this->successResponse(
                 $responseData,
@@ -329,11 +346,11 @@ class ChannelController extends Controller
         }
 
         if (!$channel->external_id) {
-            return $this->badRequestResponse('Channel has no external ID');
+            return $this->errorResponse('Channel has no external ID', 400);
         }
 
         if (!$channel->iptv) {
-            return $this->badRequestResponse('Channel has no IPTV provider configured');
+            return $this->errorResponse('Channel has no IPTV provider configured', 400);
         }
 
         try {
@@ -355,6 +372,7 @@ class ChannelController extends Controller
 
     /**
      * Get Series information from Xtreamcode provider
+     * Caches episodes in database after first fetch
      */
     public function seriesInfo(string $uuid): JsonResponse
     {
@@ -364,12 +382,26 @@ class ChannelController extends Controller
             return $this->notFoundResponse('Channel not found');
         }
 
+        // Check if we have episodes cached in database
+        $episodesCount = $this->episodeService->countByChannelId($channel->id);
+
+        // If we have episodes in DB and metadata is recent (less than 7 days), return from DB
+        $lastSynced = $channel->metadata['last_synced_at'] ?? null;
+        $isCacheValid = $lastSynced &&
+                       \Carbon\Carbon::parse($lastSynced)->isAfter(now()->subDays(7));
+
+        if ($episodesCount > 0 && $isCacheValid) {
+            // Return from database
+            return $this->seriesInfoFromDatabase($channel);
+        }
+
+        // Otherwise, fetch from IPTV provider and cache
         if (!$channel->external_id) {
-            return $this->badRequestResponse('Channel has no external ID');
+            return $this->errorResponse('Channel has no external ID', 400);
         }
 
         if (!$channel->iptv) {
-            return $this->badRequestResponse('Channel has no IPTV provider configured');
+            return $this->errorResponse('Channel has no IPTV provider configured', 400);
         }
 
         try {
@@ -380,12 +412,98 @@ class ChannelController extends Controller
                 return $this->notFoundResponse('Series information not found on provider');
             }
 
+            // Get fallback image from current logo_url (what's displayed in list)
+            $fallbackImageUrl = $channel->logo_url;
+
+            // Cache series metadata and episodes in database
+            $this->cacheSeriesInDatabase($channel, $seriesInfo, $fallbackImageUrl);
+
             return $this->successResponse(
                 $seriesInfo,
                 'Series information retrieved successfully'
             );
         } catch (\Exception $e) {
+            // If fetch fails but we have cached data, return it anyway
+            if ($episodesCount > 0) {
+                return $this->seriesInfoFromDatabase($channel);
+            }
+
             return $this->serverErrorResponse('Error fetching Series information: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get series info from database cache
+     */
+    protected function seriesInfoFromDatabase(\App\Modules\Channel\Models\Channel $channel): JsonResponse
+    {
+        $episodes = $this->episodeService->getGroupedByChannelId($channel->id);
+
+        $seasons = collect($episodes)
+            ->map(function ($seasonEpisodes, $seasonNumber) {
+                return [
+                    'season' => (int) $seasonNumber,
+                    'episodes' => collect($seasonEpisodes)->map(function ($episode) {
+                        return [
+                            'id' => $episode['external_id'] ?? $episode['id'],
+                            'episode_id' => $episode['external_id'] ?? $episode['id'],
+                            'season' => $episode['season'],
+                            'episode' => $episode['episode'],
+                            'title' => $episode['name'],
+                            'name' => $episode['name'],
+                            'description' => $episode['description'],
+                            'plot' => $episode['plot'],
+                            'duration' => $episode['duration'],
+                            'aired_date' => $episode['aired_date'],
+                            'thumbnail' => $episode['thumbnail_url'],
+                            'stream_url' => $episode['metadata']['stream_url'] ?? null,
+                            'rating' => $episode['metadata']['rating'] ?? null,
+                        ];
+                    })->values()->toArray(),
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        $metadata = $channel->metadata ?? [];
+
+        return $this->successResponse([
+            'id' => $channel->external_id,
+            'name' => $channel->name,
+            'description' => $metadata['description'] ?? null,
+            'plot' => $metadata['plot'] ?? null,
+            'rating' => $metadata['rating'] ?? null,
+            'release_date' => $metadata['release_date'] ?? null,
+            'genre' => $metadata['genre'] ?? null,
+            'director' => $metadata['director'] ?? null,
+            'cast' => $metadata['cast'] ?? null,
+            'cover' => $metadata['images']['cover'] ?? $channel->logo_url,
+            'poster' => $metadata['images']['poster'] ?? null,
+            'backdrop' => $metadata['images']['backdrop'] ?? null,
+            'backdrop_path' => $metadata['images']['backdrop'] ?? null,
+            'seasons' => $seasons,
+            'episodes_count' => $metadata['episodes_count'] ?? count($seasons),
+            'source' => 'database',
+        ], 'Series information retrieved from cache');
+    }
+
+    /**
+     * Cache series data in database
+     */
+    protected function cacheSeriesInDatabase(
+        \App\Modules\Channel\Models\Channel $channel,
+        array $seriesInfo,
+        ?string $fallbackImageUrl = null
+    ): void {
+        // Update channel metadata
+        $this->service->updateSeriesMetadata($channel, $seriesInfo, $fallbackImageUrl);
+
+        // Sync episodes
+        if (isset($seriesInfo['seasons']) && is_array($seriesInfo['seasons'])) {
+            $this->episodeService->syncEpisodesFromSeriesData(
+                $channel->id,
+                $seriesInfo['seasons']
+            );
         }
     }
 }
