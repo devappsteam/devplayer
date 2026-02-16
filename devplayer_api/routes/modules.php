@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 // Load all module routes
 $modules = [
+    'Auth',
     'IPTV',
     'Category',
     'Stream',

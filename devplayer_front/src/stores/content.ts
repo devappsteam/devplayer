@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import { useAuthStore } from './auth';
 
 export interface ContentItem {
   id: number;
@@ -33,7 +34,6 @@ interface ContentCategory {
 
 const API_BASE_URL = 'http://localhost:8000/api/v1';
 const RECENT_STORAGE_KEY = 'devplayer.recentlyWatched';
-const USER_ID = 1;
 
 export const useContentStore = defineStore('content', () => {
   const featured = ref<ContentItem | null>(null);
@@ -81,8 +81,11 @@ export const useContentStore = defineStore('content', () => {
   };
 
   const loadFavoritesFromAPI = async () => {
+    const auth = useAuthStore();
     try {
-      const response = await fetch(`${API_BASE_URL}/favorites/user/${USER_ID}`);
+      const response = await fetch(`${API_BASE_URL}/favorites/me`, {
+        headers: { ...auth.authHeaders() }
+      });
       if (!response.ok) return [];
       const result = await response.json();
       return (result.data || []).map((fav: any) => ({
@@ -104,6 +107,7 @@ export const useContentStore = defineStore('content', () => {
   };
 
   const toggleFavorite = async (item: ContentItem) => {
+    const auth = useAuthStore();
     try {
       // Validação: garantir que o item tem ID
       if (!item || !item.id) {
@@ -119,15 +123,15 @@ export const useContentStore = defineStore('content', () => {
       };
 
       const payload = {
-        user_id: USER_ID,
         channel_id: item.id,
         stream_type: streamTypeMap[item.type] || 'live',
       };
 
-      const response = await fetch(`${API_BASE_URL}/favorites/toggle`, {
+      const response = await fetch(`${API_BASE_URL}/favorites/me/toggle`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...auth.authHeaders(),
         },
         body: JSON.stringify(payload),
       });

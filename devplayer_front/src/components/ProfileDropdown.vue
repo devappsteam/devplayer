@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 import {
   UserCircleIcon,
   ArrowPathIcon,
-  Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   CheckCircleIcon,
   XCircleIcon,
@@ -39,6 +40,10 @@ const isSyncing = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
 const syncId = ref<string | null>(null);
 const pollInterval = ref<number | null>(null);
+const router = useRouter();
+const auth = useAuthStore();
+
+const userName = computed(() => auth.user?.name || auth.user?.email || 'Perfil');
 
 const liveSync = ref<SyncTypeStatus>({ status: 'idle', message: '', progress: 0 });
 const vodSync = ref<SyncTypeStatus>({ status: 'idle', message: '', progress: 0 });
@@ -60,6 +65,12 @@ const overallStatus = computed(() => {
 
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
+};
+
+const handleLogout = async () => {
+  await auth.logout();
+  isOpen.value = false;
+  router.push('/login');
 };
 
 const handleClickOutside = (event: MouseEvent) => {
@@ -239,7 +250,7 @@ onUnmounted(() => {
       class="flex items-center space-x-2 hover:text-white transition group cursor-pointer"
     >
       <UserCircleIcon class="w-8 h-8 text-white group-hover:text-gray-300" />
-      <span class="hidden md:block text-sm font-medium group-hover:underline">Perfil</span>
+      <span class="hidden md:block text-sm font-medium group-hover:underline">{{ userName }}</span>
     </button>
 
     <!-- Dropdown Menu -->
@@ -410,18 +421,9 @@ onUnmounted(() => {
 
         <div class="border-t border-gray-700 my-2"></div>
 
-        <!-- Settings -->
-        <button
-          class="w-full px-4 py-3 text-left hover:bg-gray-800 transition flex items-center space-x-3 text-gray-300 hover:text-white cursor-pointer"
-        >
-          <Cog6ToothIcon class="w-5 h-5" />
-          <span>Configurações</span>
-        </button>
-
-        <div class="border-t border-gray-700 my-2"></div>
-
         <!-- Logout -->
         <button
+          @click="handleLogout"
           class="w-full px-4 py-3 text-left hover:bg-gray-800 transition flex items-center space-x-3 text-red-400 hover:text-red-300 cursor-pointer"
         >
           <ArrowRightOnRectangleIcon class="w-5 h-5" />

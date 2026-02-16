@@ -49,6 +49,12 @@ class HistoryController extends Controller
         ]);
     }
 
+    public function lastMe(?string $contentType = null): JsonResponse
+    {
+        $userId = (string) auth('api')->id();
+        return $this->last($userId, $contentType);
+    }
+
     public function index(string $userId, ?string $contentType = null): JsonResponse
     {
         $history = $this->service->getHistory($userId, $contentType);
@@ -57,6 +63,12 @@ class HistoryController extends Controller
             $history,
             'History retrieved successfully'
         );
+    }
+
+    public function indexMe(?string $contentType = null): JsonResponse
+    {
+        $userId = (string) auth('api')->id();
+        return $this->index($userId, $contentType);
     }
 
     public function store(string $userId): JsonResponse
@@ -91,11 +103,23 @@ class HistoryController extends Controller
         return $this->successResponse(null, 'Added to history');
     }
 
+    public function storeMe(): JsonResponse
+    {
+        $userId = (string) auth('api')->id();
+        return $this->store($userId);
+    }
+
     public function clear(string $userId): JsonResponse
     {
         $this->service->clearHistory($userId);
 
         return $this->successResponse(null, 'History cleared successfully');
+    }
+
+    public function clearMe(): JsonResponse
+    {
+        $userId = (string) auth('api')->id();
+        return $this->clear($userId);
     }
 
     public function sync(): JsonResponse

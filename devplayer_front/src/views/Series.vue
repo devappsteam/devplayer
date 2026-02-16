@@ -9,9 +9,11 @@ import { XMarkIcon, ArrowPathIcon } from '@heroicons/vue/24/solid';
 import { useContentStore } from '@/stores/content';
 import { useSearch } from '@/composables/useSearch';
 import type { ContentItem } from '@/stores/content';
+import { useAuthStore } from '@/stores/auth';
 
 const API_BASE_URL = 'http://localhost:8000/api/v1';
 const store = useContentStore();
+const auth = useAuthStore();
 const { isSearchOpen, closeSearch } = useSearch();
 
 const loading = ref(true);
@@ -102,7 +104,9 @@ const fetchContent = async () => {
       if (items.length > 0) {
         // Tentar obter o ID do último assistido
         try {
-          const lastRes = await fetch(`${API_BASE_URL}/history/user/1/last/series`);
+          const lastRes = await fetch(`${API_BASE_URL}/history/me/last/series`, {
+            headers: { ...auth.authHeaders() }
+          });
           if (lastRes.ok) {
             const lastData = await lastRes.json();
             if (lastData.success && lastData.data?.id) {
@@ -157,7 +161,9 @@ const fetchContent = async () => {
     }
 
     // Buscar favoritos
-    const favRes = await fetch(`${API_BASE_URL}/favorites/user/1?type=series`);
+    const favRes = await fetch(`${API_BASE_URL}/favorites/me?type=series`, {
+      headers: { ...auth.authHeaders() }
+    });
     if (favRes.ok) {
       const favData = await favRes.json();
       favorites.value = (favData.data || []).map((c: any) => mapChannelToItem(c));
@@ -376,9 +382,9 @@ const addToHistory = async (
   extra: Record<string, unknown> = {}
 ): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/history/user/1`, {
+    const response = await fetch(`${API_BASE_URL}/history/me`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...auth.authHeaders() },
       body: JSON.stringify({ channel_id: channelId, content_type: contentType, ...extra })
     });
 

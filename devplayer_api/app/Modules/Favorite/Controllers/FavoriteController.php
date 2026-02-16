@@ -141,6 +141,12 @@ class FavoriteController extends Controller
         );
     }
 
+    public function userFavoritesMe(): JsonResponse
+    {
+        $userId = (int) auth('api')->id();
+        return $this->userFavorites($userId);
+    }
+
     /**
      * Toggle favorite for a channel
      */
@@ -199,6 +205,12 @@ class FavoriteController extends Controller
         }
     }
 
+    public function toggleMe(): JsonResponse
+    {
+        request()->merge(['user_id' => (int) auth('api')->id()]);
+        return $this->toggle();
+    }
+
     /**
      * Check if channel is favorited by user
      */
@@ -210,6 +222,12 @@ class FavoriteController extends Controller
             ['favorited' => $exists],
             'Favorite status checked'
         );
+    }
+
+    public function checkMe(int $channelId): JsonResponse
+    {
+        $userId = (int) auth('api')->id();
+        return $this->check($userId, $channelId);
     }
 
     /**
