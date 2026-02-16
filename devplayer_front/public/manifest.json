@@ -2,33 +2,33 @@
   "name": "DevPlayer - Reprodutor de IPTV",
   "short_name": "DevPlayer",
   "description": "Reprodutor de IPTV com suporte a TV Ao Vivo, Filmes e Séries",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "theme_color": "#000000",
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "/favicon.png",
+      "src": "./favicon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/favicon.png",
+      "src": "./favicon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/favicon.png",
+      "src": "./favicon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/favicon.png",
+      "src": "./favicon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -36,13 +36,13 @@
   ],
   "screenshots": [
     {
-      "src": "/logo.png",
+      "src": "./logo.png",
       "sizes": "540x720",
       "type": "image/png",
       "form_factor": "narrow"
     },
     {
-      "src": "/logo.png",
+      "src": "./logo.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide"
