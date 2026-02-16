@@ -47,6 +47,41 @@ const mapChannelToItem = (channel: any): ContentItem => {
   };
 };
 
+const buildEpisodeLabel = (episode: any): string => {
+  const season = episode.season ?? episode.episode_season;
+  const episodeNum = episode.episode ?? episode.episode_number;
+  const title = episode.full_title || episode.title || episode.name;
+
+  if (season != null && episodeNum != null) {
+    const prefix = `S${String(season).padStart(2, '0')}E${String(episodeNum).padStart(2, '0')}`;
+    return title ? `${prefix} - ${title}` : prefix;
+  }
+
+  return title || '';
+};
+
+const buildEpisodeFeaturedItem = (seriesItem: ContentItem, episode: any): ContentItem => {
+  const label = buildEpisodeLabel(episode);
+  const episodeTitle = episode.full_title || episode.title || episode.name;
+
+  return {
+    ...seriesItem,
+    title: label ? `${seriesItem.title} • ${label}` : seriesItem.title,
+    description: episode.description || episode.plot || seriesItem.description,
+    image: episode.thumbnail_url || episode.thumbnail || seriesItem.image,
+    episode: {
+      id: episode.id || episode.episode_id,
+      season: episode.season ?? episode.episode_season,
+      episode: episode.episode ?? episode.episode_number,
+      title: episodeTitle,
+      name: episodeTitle,
+      description: episode.description || episode.plot,
+      thumbnail_url: episode.thumbnail_url || episode.thumbnail || episode.cover,
+      stream_url: episode.stream_url || episode.episode_stream_url,
+    },
+  };
+};
+
 const fetchContent = async () => {
   loading.value = true;
   error.value = null;
@@ -71,8 +106,15 @@ const fetchContent = async () => {
           if (lastRes.ok) {
             const lastData = await lastRes.json();
             if (lastData.success && lastData.data?.id) {
-              // Procurar a série na lista já carregada usando ID numérico
-              lastWatchedItem = items.find((item: any) => item.id === lastData.data.id);
+              const seriesItem = items.find((item: any) => item.id === lastData.data.id);
+              const baseItem = seriesItem || (lastData.data?.channel ? mapChannelToItem(lastData.data.channel) : null);
+              if (baseItem) {
+                if (lastData.data?.episode_id || lastData.data?.episode_stream_url) {
+                  lastWatchedItem = buildEpisodeFeaturedItem(baseItem, lastData.data);
+                } else {
+                  lastWatchedItem = baseItem;
+                }
+              }
             }
           }
         } catch (histErr) {
@@ -171,6 +213,11 @@ const fetchContent = async () => {
 };
 
 const openPlayer = (item: any) => {
+  if (item?.type === 'series' && item?.episode?.stream_url) {
+    playEpisode(item.episode, item);
+    return;
+  }
+
   activeContent.value = item;
   isPlayerOpen.value = true;
   playerKey.value++;
@@ -210,6 +257,9 @@ const openSeriesDetail = async (item: ContentItem) => {
           seriesData = {
             ...seriesData,
             ...seriesXData.data,
+            // Preservar ID interno e UUID do canal
+            id: seriesData.id,
+            uuid: seriesData.uuid,
             // Manter stream_url da API local se existir
             stream_url: seriesData.stream_url || seriesXData.data.stream_url,
             // Usar seasons do Xtreamcode se disponíveis
@@ -259,6 +309,21 @@ const playEpisode = (episode: any, series: any = null) => {
   isPlayerOpen.value = true;
   playerKey.value++;
   document.documentElement.classList.add('player-open');
+
+  if (activeSeries?.id) {
+    addToHistory(activeSeries.id, 'series', {
+      episode_id: episode.id || episode.episode_id || null,
+      episode_season: episode.season ?? null,
+      episode_number: episode.episode ?? null,
+      episode_title: episode.full_title || episode.title || episode.name || null,
+      episode_description: episode.description || episode.plot || null,
+      episode_thumbnail: episode.thumbnail_url || episode.thumbnail || episode.cover || null,
+      episode_stream_url: episode.stream_url || null,
+    }).then(() => {
+      const seriesItem = mapChannelToItem(activeSeries);
+      featured.value = buildEpisodeFeaturedItem(seriesItem, episode);
+    });
+  }
 };
 
 const findNextEpisode = (currentEpisode: any, series: any = null) => {
@@ -305,12 +370,16 @@ const handlePlayNextEpisode = (nextEpisode: any) => {
   }
 };
 
-const addToHistory = async (channelId: string, contentType: string): Promise<void> => {
+const addToHistory = async (
+  channelId: number,
+  contentType: string,
+  extra: Record<string, unknown> = {}
+): Promise<void> => {
   try {
     const response = await fetch(`${API_BASE_URL}/history/user/1`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ channel_id: channelId, content_type: contentType })
+      body: JSON.stringify({ channel_id: channelId, content_type: contentType, ...extra })
     });
 
     if (!response.ok) {

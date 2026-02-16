@@ -5,6 +5,8 @@ namespace App\Modules\History\Controllers;
 use App\Http\Controllers\Controller;
 use App\Core\Traits\ApiResponse;
 use App\Modules\History\Services\HistoryService;
+use App\Modules\Channel\Resources\ChannelDetailResource;
+use App\Modules\Channel\Models\Channel;
 use Illuminate\Http\JsonResponse;
 
 class HistoryController extends Controller
@@ -26,10 +28,24 @@ class HistoryController extends Controller
             return $this->notFoundResponse('No watch history found');
         }
 
+        $channel = $lastWatched->channel;
+        if (!$channel) {
+            $channel = Channel::where('external_id', (string) $lastWatched->channel_id)->first();
+        }
+        $channelData = $channel ? (new ChannelDetailResource($channel))->resolve() : null;
+
         return $this->successResponse([
             'id' => $lastWatched->channel_id,
             'type' => $lastWatched->content_type,
             'watched_at' => $lastWatched->watched_at,
+            'channel' => $channelData,
+            'episode_id' => $lastWatched->episode_id,
+            'episode_season' => $lastWatched->episode_season,
+            'episode_number' => $lastWatched->episode_number,
+            'episode_title' => $lastWatched->episode_title,
+            'episode_description' => $lastWatched->episode_description,
+            'episode_thumbnail' => $lastWatched->episode_thumbnail,
+            'episode_stream_url' => $lastWatched->episode_stream_url,
         ]);
     }
 
@@ -48,12 +64,28 @@ class HistoryController extends Controller
         $validated = request()->validate([
             'channel_id' => 'required|integer',
             'content_type' => 'required|in:channel,movie,series',
+            'episode_id' => 'nullable|integer',
+            'episode_season' => 'nullable|integer',
+            'episode_number' => 'nullable|integer',
+            'episode_title' => 'nullable|string',
+            'episode_description' => 'nullable|string',
+            'episode_thumbnail' => 'nullable|string',
+            'episode_stream_url' => 'nullable|string',
         ]);
 
         $this->service->addToHistory(
             $userId,
             $validated['channel_id'],
-            $validated['content_type']
+            $validated['content_type'],
+            [
+                'episode_id' => $validated['episode_id'] ?? null,
+                'episode_season' => $validated['episode_season'] ?? null,
+                'episode_number' => $validated['episode_number'] ?? null,
+                'episode_title' => $validated['episode_title'] ?? null,
+                'episode_description' => $validated['episode_description'] ?? null,
+                'episode_thumbnail' => $validated['episode_thumbnail'] ?? null,
+                'episode_stream_url' => $validated['episode_stream_url'] ?? null,
+            ]
         );
 
         return $this->successResponse(null, 'Added to history');

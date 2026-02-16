@@ -66,6 +66,9 @@ const fetchContent = async () => {
             if (lastData.data?.id) {
               // Procurar o canal na lista já carregada usando ID numérico
               lastWatchedItem = items.find((item: any) => item.id === lastData.data.id);
+              if (!lastWatchedItem && lastData.data?.channel) {
+                lastWatchedItem = mapChannelToItem(lastData.data.channel);
+              }
             }
           }
         } catch (histErr) {

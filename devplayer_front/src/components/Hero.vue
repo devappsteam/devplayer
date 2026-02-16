@@ -11,9 +11,6 @@ const props = defineProps<{
 const emit = defineEmits(['play']);
 const store = useContentStore();
 
-// Debug: Log the item when received
-console.log('Hero component received item:', JSON.stringify(props.item, null, 2));
-
 // Computed para reatividade otimizada
 const isItemFavorite = computed(() => store.isFavorite(props.item.id));
 

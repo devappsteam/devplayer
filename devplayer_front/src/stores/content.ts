@@ -10,6 +10,16 @@ export interface ContentItem {
   url?: string; // Stream URL
   description?: string;
   rating?: number;
+  episode?: {
+    id?: number | string;
+    season?: number;
+    episode?: number;
+    title?: string;
+    name?: string;
+    description?: string;
+    thumbnail_url?: string;
+    stream_url?: string;
+  };
 }
 
 interface ContentCategory {

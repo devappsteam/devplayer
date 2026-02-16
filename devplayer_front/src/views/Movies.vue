@@ -73,6 +73,9 @@ const fetchContent = async () => {
             if (lastData.data?.id) {
               // Procurar o filme na lista já carregada usando ID numérico
               lastWatchedItem = items.find((item: any) => item.id === lastData.data.id);
+              if (!lastWatchedItem && lastData.data?.channel) {
+                lastWatchedItem = mapChannelToItem(lastData.data.channel);
+              }
             }
           }
         } catch (histErr) {
@@ -210,6 +213,9 @@ const openMovieDetail = async (item: ContentItem) => {
           movieData = {
             ...movieData,
             ...vodData.data,
+            // Preservar ID interno e UUID do canal
+            id: movieData.id,
+            uuid: movieData.uuid,
             // Manter stream_url da API local se existir
             stream_url: movieData.stream_url || vodData.data.stream_url,
           };
