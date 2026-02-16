@@ -206,7 +206,10 @@
                   <div
                     v-for="episode in currentSeasonEpisodes.episodes"
                     :key="episode.uuid"
-                    @click="playEpisode(episode)"
+                    @click="() => {
+                      console.log('🖱️ Episode clicked:', episode);
+                      playEpisode(episode);
+                    }"
                     class="p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg cursor-pointer transition-colors duration-200 flex gap-4 group"
                   >
                     <!-- Episode Thumbnail -->
@@ -369,7 +372,9 @@ const playSeries = () => {
 };
 
 const playEpisode = (episode: Episode) => {
+  console.log('🎬 SeriesDetailModal.playEpisode called with:', episode);
   emit('playEpisode', episode);
+  console.log('✉️ playEpisode event emitted');
   close();
 };
 

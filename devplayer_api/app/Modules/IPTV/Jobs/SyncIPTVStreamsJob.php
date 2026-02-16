@@ -258,8 +258,8 @@ class SyncIPTVStreamsJob implements ShouldQueue
 
         return match($this->streamType) {
             StreamType::LIVE => "{$baseUrl}/live/{$username}/{$password}/{$streamId}.m3u8",
-            StreamType::VOD => "{$baseUrl}/movie/{$username}/{$password}/{$streamId}." . ($streamData['container_extension'] ?? 'mp4'),
-            StreamType::SERIES => "{$baseUrl}/series/{$username}/{$password}/{$streamId}.m3u8",
+            StreamType::VOD => "{$baseUrl}/movie/{$username}/{$password}/{$streamId}.mp4",
+            StreamType::SERIES => "{$baseUrl}/series/{$username}/{$password}/{$streamId}.mp4",
         };
     }
 

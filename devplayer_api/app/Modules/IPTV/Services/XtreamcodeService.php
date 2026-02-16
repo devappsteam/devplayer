@@ -107,7 +107,7 @@ class XtreamcodeService
         if (is_null($vodId)) {
             return null;
         }
-        $extension = $containerExtension ?? 'm3u8';
+        $extension = $containerExtension ?? 'mp4';
         return "{$this->baseUrl}/movie/{$this->username}/{$this->password}/{$vodId}.{$extension}";
     }
 
@@ -119,7 +119,8 @@ class XtreamcodeService
         if (is_null($episodeId)) {
             return null;
         }
-        return "{$this->baseUrl}/series/{$this->username}/{$this->password}/{$episodeId}.m3u8";
+
+        return "{$this->baseUrl}/series/{$this->username}/{$this->password}/{$episodeId}.mp4";
     }
 
     /**

@@ -244,6 +244,9 @@ const playEpisode = (episode: any) => {
   // Encontrar o próximo episódio
   const nextEp = findNextEpisode(episode);
 
+  console.log('🎬 playEpisode called with:', episode);
+  console.log('selectedSeries.value:', selectedSeries.value);
+
   activeContent.value = {
     ...selectedSeries.value,
     ...episode,
@@ -252,7 +255,12 @@ const playEpisode = (episode: any) => {
     isSeries: true,
     nextEpisode: nextEp
   };
+
+  console.log('✅ activeContent.value set to:', activeContent.value);
+  console.log('activeContent.value.url:', activeContent.value.url);
+
   document.documentElement.classList.add('player-open');
+  console.log('✅ player-open class added');
 };
 
 const findNextEpisode = (currentEpisode: any) => {
@@ -557,6 +565,7 @@ onUnmounted(() => {
         openPlayer(series);
       }"
       @play-episode="(episode) => {
+        console.log('📧 @play-episode event received with:', episode);
         closeSeriesDetail();
         playEpisode(episode);
       }"
