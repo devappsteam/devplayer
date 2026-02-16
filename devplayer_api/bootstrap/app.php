@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
+        $middleware->append(\App\Http\Middleware\NoIndexHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
