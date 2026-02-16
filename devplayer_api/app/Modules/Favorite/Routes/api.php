@@ -7,6 +7,7 @@ use App\Modules\Favorite\Controllers\FavoriteController;
 Route::get('favorites/user/{userId}', [FavoriteController::class, 'userFavorites']);
 Route::post('favorites/sync', [FavoriteController::class, 'sync']);
 Route::post('favorites/toggle', [FavoriteController::class, 'toggle']);
+Route::post('favorites/fix-stream-types', [FavoriteController::class, 'fixStreamTypes']);
 Route::get('favorites/user/{userId}/check/{channelId}', [FavoriteController::class, 'check']);
 
 // Standard resource routes

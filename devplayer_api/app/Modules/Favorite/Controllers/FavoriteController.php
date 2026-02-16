@@ -221,4 +221,45 @@ class FavoriteController extends Controller
         // Currently a no-op since favorites are synced via regular API calls
         return $this->successResponse(null, 'Favorites sync completed');
     }
+
+    /**
+     * Fix stream_type for existing favorites based on channel type
+     */
+    public function fixStreamTypes(): JsonResponse
+    {
+        try {
+            $favorites = \App\Modules\Favorite\Models\Favorite::with('channel')->get();
+            $fixed = 0;
+            $errors = 0;
+
+            foreach ($favorites as $favorite) {
+                if (!$favorite->channel) {
+                    $errors++;
+                    continue;
+                }
+
+                $correctType = $favorite->channel->stream_type;
+
+                if ($favorite->stream_type !== $correctType) {
+                    $favorite->stream_type = $correctType;
+                    $favorite->save();
+                    $fixed++;
+                }
+            }
+
+            // Clear all user caches
+            \Illuminate\Support\Facades\Cache::flush();
+
+            return $this->successResponse(
+                [
+                    'total' => $favorites->count(),
+                    'fixed' => $fixed,
+                    'errors' => $errors,
+                ],
+                "Fixed {$fixed} favorites stream types"
+            );
+        } catch (\Exception $e) {
+            return $this->serverErrorResponse('Error fixing stream types: ' . $e->getMessage());
+        }
+    }
 }

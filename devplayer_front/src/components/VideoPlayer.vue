@@ -158,11 +158,6 @@ const resetControlsTimer = () => {
 };
 
 onMounted(() => {
-    console.log('VideoPlayer mounted with props:', {
-        src: props.src,
-        isSeries: props.isSeries,
-        nextEpisode: props.nextEpisode
-    });
     setupHls();
 });
 
@@ -185,15 +180,6 @@ const updateTime = () => {
         if (props.isSeries && props.nextEpisode && duration.value > 0) {
             const timeRemaining = duration.value - currentTime.value;
 
-            console.log('Series check:', {
-                isSeries: props.isSeries,
-                hasNextEpisode: !!props.nextEpisode,
-                duration: duration.value,
-                currentTime: currentTime.value,
-                timeRemaining,
-                showButton: timeRemaining <= 20 && timeRemaining > 0
-            });
-
             if (timeRemaining <= 20 && timeRemaining > 0) {
                 showNextEpisodeButton.value = true;
                 timeUntilNextEpisode.value = Math.ceil(timeRemaining);
@@ -205,12 +191,6 @@ const updateTime = () => {
             if (timeRemaining <= 0.5 && !videoRef.value.paused) {
                 playNextEpisode();
             }
-        } else {
-            console.log('Series check failed:', {
-                isSeries: props.isSeries,
-                hasNextEpisode: !!props.nextEpisode,
-                duration: duration.value
-            });
         }
     }
 };

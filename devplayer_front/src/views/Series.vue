@@ -244,12 +244,6 @@ const playEpisode = (episode: any) => {
   // Encontrar o próximo episódio
   const nextEp = findNextEpisode(episode);
 
-  console.log('playEpisode called:', {
-    episode,
-    nextEpisode: nextEp,
-    selectedSeries: selectedSeries.value
-  });
-
   activeContent.value = {
     ...selectedSeries.value,
     ...episode,
@@ -258,12 +252,6 @@ const playEpisode = (episode: any) => {
     isSeries: true,
     nextEpisode: nextEp
   };
-
-  console.log('activeContent set to:', activeContent.value);
-
-  isPlayerOpen.value = true;
-  playerKey.value++;
-  document.body.style.overflow = 'hidden';
   document.documentElement.classList.add('player-open');
 };
 

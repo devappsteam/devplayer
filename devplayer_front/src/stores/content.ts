@@ -101,9 +101,17 @@ export const useContentStore = defineStore('content', () => {
         return;
       }
 
+      // Mapear o tipo do ContentItem para stream_type da API
+      const streamTypeMap: Record<ContentItem['type'], string> = {
+        'channel': 'live',
+        'movie': 'vod',
+        'series': 'series'
+      };
+
       const payload = {
         user_id: USER_ID,
         channel_id: item.id,
+        stream_type: streamTypeMap[item.type] || 'live',
       };
 
       const response = await fetch(`${API_BASE_URL}/favorites/toggle`, {
