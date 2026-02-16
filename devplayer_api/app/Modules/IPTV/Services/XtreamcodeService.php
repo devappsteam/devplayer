@@ -6,6 +6,7 @@ use App\Modules\IPTV\Models\IPTV;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class XtreamcodeService
 {
@@ -56,7 +57,7 @@ class XtreamcodeService
                 return $this->normalizeVodData($data, $vodId);
             });
         } catch (Exception $e) {
-            \Log::error("Error fetching VOD info from Xtreamcode: {$e->getMessage()}");
+            Log::error("Error fetching VOD info from Xtreamcode: {$e->getMessage()}");
             return null;
         }
     }
@@ -94,7 +95,7 @@ class XtreamcodeService
                 return $this->normalizeSeriesData($data, $seriesId);
             });
         } catch (Exception $e) {
-            \Log::error("Error fetching Series info from Xtreamcode: {$e->getMessage()}");
+            Log::error("Error fetching Series info from Xtreamcode: {$e->getMessage()}");
             return null;
         }
     }

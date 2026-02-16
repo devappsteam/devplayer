@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { ChevronLeftIcon, ChevronRightIcon, ArrowsPointingOutIcon } from '@heroicons/vue/24/solid';
 import Hls from 'hls.js';
+import { getSecureVideoUrl } from '@/composables/useVideoProxy';
 
 const props = defineProps<{
   src: string;
@@ -30,6 +31,9 @@ const timeUntilNextEpisode = ref(20);
 let controlsTimeout: number | undefined;
 let lastClickTime = 0;
 let clickTimeout: number | undefined;
+
+// Computed property para URL segura (com proxy se necessário)
+const secureVideoUrl = computed(() => getSecureVideoUrl(props.src));
 
 const play = () => {
     videoRef.value?.play();
@@ -67,18 +71,21 @@ const handleVideoClick = () => {
 const setupHls = () => {
     if (!videoRef.value || !props.src) return;
 
+    // Usar URL segura (com proxy se necessário)
+    const videoUrl = secureVideoUrl.value;
+
     // Check if URL is a direct MP4/video file or HLS manifest
-    const isDirectVideo = props.src.includes('.mp4') || props.src.includes('.mkv') || props.src.includes('.avi');
-    const isHlsManifest = props.src.includes('.m3u8');
+    const isDirectVideo = videoUrl.includes('.mp4') || videoUrl.includes('.mkv') || videoUrl.includes('.avi');
+    const isHlsManifest = videoUrl.includes('.m3u8');
 
     // For direct video files, use native video element
     if (isDirectVideo && !isHlsManifest) {
-        console.log('Using native video player for:', props.src);
+        console.log('Using native video player for:', videoUrl);
         if (hls) {
             hls.destroy();
             hls = null;
         }
-        videoRef.value.src = props.src;
+        videoRef.value.src = videoUrl;
         videoRef.value.addEventListener('loadedmetadata', () => {
             if (props.autoplay) play();
             isLoading.value = false;
@@ -97,13 +104,15 @@ const setupHls = () => {
             autoStartLoad: true,
             startLevel: -1,
             xhrSetup: function(xhr, url) {
-                // Enable CORS for cross-origin requests
+                // Disable CORS credentials and remove origin headers to avoid being blocked
                 xhr.withCredentials = false;
+                // Remove Referer header by setting Referrer-Policy
+                xhr.setRequestHeader('Referrer-Policy', 'no-referrer');
             },
             maxBufferLength: 30,
             maxMaxBufferLength: 60,
         });
-        hls.loadSource(props.src);
+        hls.loadSource(videoUrl);
         hls.attachMedia(videoRef.value);
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -124,7 +133,7 @@ const setupHls = () => {
                         hls.destroy();
                         hls = null;
                     }
-                    videoRef.value!.src = props.src;
+                    videoRef.value!.src = secureVideoUrl.value;
                     if (props.autoplay) play();
                     break;
                 case Hls.ErrorTypes.MEDIA_ERROR:
@@ -139,7 +148,7 @@ const setupHls = () => {
             }
         });
     } else if (videoRef.value.canPlayType('application/vnd.apple.mpegurl')) {
-        videoRef.value.src = props.src;
+        videoRef.value.src = secureVideoUrl.value;
         videoRef.value.addEventListener('loadedmetadata', () => {
             if (props.autoplay) play();
             isLoading.value = false;
@@ -300,6 +309,7 @@ onMounted(() => {
       ref="videoRef"
       class="absolute inset-0 w-full h-full object-contain cursor-pointer"
       crossorigin="anonymous"
+      referrerpolicy="no-referrer"
       @timeupdate="updateTime"
       @play="onPlay"
       @pause="onPause"

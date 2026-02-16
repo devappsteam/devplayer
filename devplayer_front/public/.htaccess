@@ -12,6 +12,9 @@
 </IfModule>
 
 <IfModule mod_headers.c>
+  # Bloquear envio de Referer em requisições
+  Header set Referrer-Policy "no-referrer"
+  
   # Adicionar headers para cacheamento correto
   # Cache para arquivos com hash (nunca mudam)
   <FilesMatch "\-[a-f0-9]{8,}\.(js|css)$">
