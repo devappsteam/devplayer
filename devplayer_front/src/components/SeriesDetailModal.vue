@@ -207,7 +207,6 @@
                     v-for="episode in currentSeasonEpisodes.episodes"
                     :key="episode.uuid"
                     @click="() => {
-                      console.log('🖱️ Episode clicked:', episode);
                       playEpisode(episode);
                     }"
                     class="p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg cursor-pointer transition-colors duration-200 flex gap-4 group"
@@ -335,7 +334,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: [];
   play: [SeriesData];
-  playEpisode: [Episode];
+  playEpisode: [Episode, SeriesData | null];
 }>();
 
 const store = useContentStore();
@@ -372,9 +371,7 @@ const playSeries = () => {
 };
 
 const playEpisode = (episode: Episode) => {
-  console.log('🎬 SeriesDetailModal.playEpisode called with:', episode);
-  emit('playEpisode', episode);
-  console.log('✉️ playEpisode event emitted');
+  emit('playEpisode', episode, props.series ?? null);
   close();
 };
 

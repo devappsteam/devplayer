@@ -240,37 +240,36 @@ const closeSeriesDetail = () => {
   loadingSeriesDetails.value = false;
 };
 
-const playEpisode = (episode: any) => {
-  // Encontrar o próximo episódio
-  const nextEp = findNextEpisode(episode);
+const playEpisode = (episode: any, series: any = null) => {
+  // Usar a série passada ou a do estado
+  const activeSeries = series || selectedSeries.value;
 
-  console.log('🎬 playEpisode called with:', episode);
-  console.log('selectedSeries.value:', selectedSeries.value);
+  // Encontrar o próximo episódio
+  const nextEp = activeSeries ? findNextEpisode(episode, activeSeries) : null;
 
   activeContent.value = {
-    ...selectedSeries.value,
+    ...(activeSeries || {}),
     ...episode,
     title: episode.full_title || episode.name,
-    url: episode.stream_url || selectedSeries.value?.stream_url,
+    url: episode.stream_url || activeSeries?.stream_url,
     isSeries: true,
     nextEpisode: nextEp
   };
 
-  console.log('✅ activeContent.value set to:', activeContent.value);
-  console.log('activeContent.value.url:', activeContent.value.url);
-
+  isPlayerOpen.value = true;
+  playerKey.value++;
   document.documentElement.classList.add('player-open');
-  console.log('✅ player-open class added');
 };
 
-const findNextEpisode = (currentEpisode: any) => {
-  if (!selectedSeries.value?.seasons) return null;
+const findNextEpisode = (currentEpisode: any, series: any = null) => {
+  const activeSeries = series || selectedSeries.value;
+  if (!activeSeries?.seasons) return null;
 
   const currentSeason = currentEpisode.season;
   const currentEpisodeNum = currentEpisode.episode;
 
   // Procurar na mesma temporada primeiro
-  for (const season of selectedSeries.value.seasons) {
+  for (const season of activeSeries.seasons) {
     if (season.season === currentSeason && season.episodes) {
       const currentIndex = season.episodes.findIndex(
         (ep: any) => ep.episode === currentEpisodeNum
@@ -284,11 +283,11 @@ const findNextEpisode = (currentEpisode: any) => {
   }
 
   // Se não há próximo na mesma temporada, procurar na próxima temporada
-  for (let i = 0; i < selectedSeries.value.seasons.length; i++) {
-    if (selectedSeries.value.seasons[i].season === currentSeason) {
+  for (let i = 0; i < activeSeries.seasons.length; i++) {
+    if (activeSeries.seasons[i].season === currentSeason) {
       // Encontrou a temporada atual, tentar pegar o primeiro episódio da próxima
-      if (i < selectedSeries.value.seasons.length - 1) {
-        const nextSeason = selectedSeries.value.seasons[i + 1];
+      if (i < activeSeries.seasons.length - 1) {
+        const nextSeason = activeSeries.seasons[i + 1];
         if (nextSeason.episodes && nextSeason.episodes.length > 0) {
           return nextSeason.episodes[0];
         }
@@ -302,7 +301,7 @@ const findNextEpisode = (currentEpisode: any) => {
 
 const handlePlayNextEpisode = (nextEpisode: any) => {
   if (nextEpisode) {
-    playEpisode(nextEpisode);
+    playEpisode(nextEpisode, activeContent.value);
   }
 };
 
@@ -564,10 +563,9 @@ onUnmounted(() => {
         closeSeriesDetail();
         openPlayer(series);
       }"
-      @play-episode="(episode) => {
-        console.log('📧 @play-episode event received with:', episode);
+      @play-episode="(episode, series) => {
         closeSeriesDetail();
-        playEpisode(episode);
+        playEpisode(episode, series);
       }"
     />
   </div>
