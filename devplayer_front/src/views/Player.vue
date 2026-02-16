@@ -7,7 +7,7 @@ import { XMarkIcon } from '@heroicons/vue/24/solid';
 const route = useRoute();
 const router = useRouter();
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 // Dados do item atual
 const activeContent = ref<any>(null);

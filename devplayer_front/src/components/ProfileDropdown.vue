@@ -49,7 +49,7 @@ const liveSync = ref<SyncTypeStatus>({ status: 'idle', message: '', progress: 0 
 const vodSync = ref<SyncTypeStatus>({ status: 'idle', message: '', progress: 0 });
 const seriesSync = ref<SyncTypeStatus>({ status: 'idle', message: '', progress: 0 });
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 const IPTV_UUID = '1c1fd6e2-34b9-4257-866b-a3807418cf2e'; // TODO: buscar dinamicamente
 
 const overallStatus = computed(() => {

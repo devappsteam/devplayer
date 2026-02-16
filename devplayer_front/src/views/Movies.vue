@@ -11,7 +11,7 @@ import { useSearch } from '@/composables/useSearch';
 import type { ContentItem } from '@/stores/content';
 import { useAuthStore } from '@/stores/auth';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 const store = useContentStore();
 const auth = useAuthStore();
 const { isSearchOpen, closeSearch } = useSearch();
