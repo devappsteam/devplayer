@@ -10,24 +10,7 @@
  * O Apache no servidor está configurado para fazer proxy de volta para pfsv.io
  */
 export function getVideoUrl(videoUrl: string): string {
-  if (!videoUrl) return '';
-
-  // Reescrever pfsv.io para stream.devapps.com.br
-  if (videoUrl.includes('pfsv.io')) {
-    return videoUrl.replace(/https?:\/\/pfsv\.io/i, 'https://stream.devapps.com.br');
-  }
-
-  // Se já usa stream.devapps.com.br, retornar como está
-  if (videoUrl.includes('stream.devapps.com.br')) {
-    return videoUrl;
-  }
-
-  // Se é HTTPS, retornar como está
-  if (videoUrl.startsWith('https://')) {
-    return videoUrl;
-  }
-
-  // Se é HTTP puro, retornar como está (proxy via Apache)
+  // Retornar URL original sem modificações
   return videoUrl;
 }
 
