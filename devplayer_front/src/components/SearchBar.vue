@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/vue/24/outline';
+import { MagnifyingGlassIcon, XMarkIcon, MicrophoneIcon } from '@heroicons/vue/24/outline';
 import { PlayIcon, PlusIcon, CheckIcon } from '@heroicons/vue/24/solid';
 import { useContentStore } from '@/stores/content';
 
@@ -18,7 +18,55 @@ const store = useContentStore();
 const searchQuery = ref('');
 const searchResults = ref<any[]>([]);
 const isSearching = ref(false);
+const isListening = ref(false);
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+
+// Speech Recognition
+const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+let recognition: any = null;
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.language = 'pt-BR';
+
+  recognition.onstart = () => {
+    isListening.value = true;
+  };
+
+  recognition.onend = () => {
+    isListening.value = false;
+  };
+
+  recognition.onresult = (event: any) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    if (transcript) {
+      searchQuery.value = transcript.trim();
+    }
+  };
+
+  recognition.onerror = (event: any) => {
+    console.error('Speech recognition error:', event.error);
+    isListening.value = false;
+  };
+}
+
+const startVoiceSearch = () => {
+  if (recognition && !isListening.value) {
+    searchQuery.value = '';
+    recognition.start();
+  }
+};
+
+const stopVoiceSearch = () => {
+  if (recognition && isListening.value) {
+    recognition.stop();
+  }
+};
 
 const placeholder = computed(() => {
   switch (props.streamType) {
@@ -137,9 +185,21 @@ watch(() => props.isOpen, (isOpen) => {
               v-model="searchQuery"
               type="text"
               :placeholder="placeholder"
-              class="w-full bg-gray-900/80 text-white text-xl pl-14 pr-14 py-4 rounded-lg border-2 border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
+              class="w-full bg-gray-900/80 text-white text-xl pl-14 pr-24 py-4 rounded-lg border-2 border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
               autofocus
             />
+            <!-- Microphone Button -->
+            <button
+              v-if="SpeechRecognition"
+              @click="isListening ? stopVoiceSearch() : startVoiceSearch()"
+              :class="[
+                'absolute right-14 top-1/2 -translate-y-1/2 transition-colors',
+                isListening ? 'text-red-500 animate-pulse' : 'text-gray-400 hover:text-white'
+              ]"
+              :title="isListening ? 'Parar escuta' : 'Iniciar busca por voz'"
+            >
+              <MicrophoneIcon class="w-6 h-6" />
+            </button>
             <button
               @click="handleClose"
               class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"

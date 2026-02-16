@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { ChevronLeftIcon, ChevronRightIcon, ArrowsPointingOutIcon } from '@heroicons/vue/24/solid';
+import { ChevronLeftIcon, ChevronRightIcon, ArrowsPointingOutIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/vue/24/solid';
 import Hls from 'hls.js';
 
 const props = defineProps<{
@@ -209,12 +209,22 @@ const skipToNextEpisode = () => {
 const onPlay = () => {
     isPlaying.value = true;
     resetControlsTimer();
+
+    // No mobile, forçar modo paisagem quando começar a reproduzir
+    if (isMobile()) {
+        requestLandscapeOrientation();
+    }
 };
 
 const onPause = () => {
     isPlaying.value = false;
     showControls.value = true;
     clearTimeout(controlsTimeout);
+
+    // No mobile, liberar o bloqueio de orientação ao pausar
+    if (isMobile()) {
+        releaseOrientationLock();
+    }
 };
 
 const onWaiting = () => (isLoading.value = true);
@@ -259,7 +269,38 @@ const togglePictureInPicture = async () => {
     }
 };
 
-// Listen for fullscreen changes
+const updateVolume = (newVolume: number) => {
+    volume.value = newVolume;
+    if (videoRef.value) {
+        videoRef.value.volume = newVolume;
+    }
+};
+
+const isMobile = (): boolean => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+const requestLandscapeOrientation = async (): Promise<void> => {
+    if ((screen.orientation as any)?.lock) {
+        try {
+            await (screen.orientation as any).lock('landscape');
+        } catch (err) {
+            console.log('Could not lock orientation:', err);
+        }
+    }
+};
+
+const releaseOrientationLock = async (): Promise<void> => {
+    if ((screen.orientation as any)?.unlock) {
+        try {
+            (screen.orientation as any).unlock();
+        } catch (err) {
+            console.log('Could not unlock orientation:', err);
+        }
+    }
+};
+
+// Listen for fullscreen changes and combine with setup
 onMounted(() => {
     const handleFullscreenChange = () => {
         isFullscreen.value = !!document.fullscreenElement;
@@ -447,6 +488,29 @@ onMounted(() => {
             <rect x="12" y="12" width="10" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="2"/>
           </svg>
         </button>
+
+        <!-- Volume Control -->
+        <div class="flex items-center gap-2 border-l border-gray-600 pl-4 group">
+          <button
+            @click="updateVolume(volume > 0 ? 0 : 1)"
+            class="text-white hover:text-red-400 focus:outline-none transition transform hover:scale-110 cursor-pointer"
+            :title="volume > 0 ? 'Mutar' : 'Habilitar som'"
+          >
+            <SpeakerWaveIcon v-if="volume > 0" class="h-6 w-6" />
+            <SpeakerXMarkIcon v-else class="h-6 w-6" />
+          </button>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            :value="volume"
+            @input="(e) => updateVolume(parseFloat((e.target as HTMLInputElement).value))"
+            class="w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-red-500 hover:h-2 transition-all"
+            title="Volume"
+          />
+          <span class="text-xs text-gray-400 w-8">{{ Math.round(volume * 100) }}%</span>
+        </div>
       </div>
     </div>
 

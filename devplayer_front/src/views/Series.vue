@@ -440,7 +440,7 @@ const getPreviousFavorite = () => {
   return favorites.value[currentIndex === 0 ? favorites.value.length - 1 : currentIndex - 1] || null;
 };
 
-const shouldShowNavigation = computed(() => favorites.value.length >= 3);
+const shouldShowNavigation = computed(() => false);
 
 const loadMoreItemsInCategory = async (categoryId: string) => {
   const category = categories.value.find(c => c.id === categoryId);
