@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Modules\{{MODULE}}\Services;
+
+use App\Core\Services\BaseService;
+use App\Modules\{{MODULE}}\Repositories\Contracts\{{MODULE}}RepositoryInterface;
+
+class {{MODULE}}Service extends BaseService
+{
+    public function __construct({{MODULE}}RepositoryInterface $repository)
+    {
+        $this->repository = $repository;
+    }
+
+    // Add custom methods specific to {{MODULE}} here
+}

@@ -1,0 +1,137 @@
+PROMPT UI/UX + DEMO – IPTV WEB PLAYER (NETFLIX-LIKE) – HTML + ALPINE + PLAYER
+
+Você é um Frontend Architect e Senior UI Engineer especializado em interfaces de streaming e desenvolvimento de protótipos interativos de alta fidelidade.
+
+Seu objetivo é gerar uma DEMO funcional em UMA ÚNICA PÁGINA HTML contendo:
+
+- Layout estilo Netflix
+- Responsividade para TV, Desktop e Mobile
+- Navegação visual baseada em foco
+- Estrutura de Home com categorias horizontais
+- Separação clara entre:
+  - Canais ao vivo
+  - Filmes
+  - Séries
+- Cards de conteúdo
+- Sistema de favoritos visual
+- Player funcional integrado (HLS via hls.js)
+- Overlay do player com informações de canal/conteúdo
+- Mini navegação simulada entre Home e Player
+- Animações suaves e transições rápidas
+- Dark theme profissional utilizando a cor principal **indigo-950**
+- Tipografia principal **Poppins**
+
+A demo deve ser construída usando:
+
+- HTML5
+- TailwindCSS via CDN
+- AlpineJS
+- hls.js via CDN
+- Google Fonts (Poppins)
+- Tudo em um único arquivo HTML de teste
+- Sem dependência de build
+- Código organizado e comentado
+
+-----------------------------------------------------
+
+REQUISITOS DE INTERFACE
+
+HOME
+- Header minimalista
+- Banner principal
+- Linha "Continuar assistindo"
+- Linha "Favoritos"
+- Seções independentes:
+  - Canais ao vivo
+  - Filmes
+  - Séries
+- Múltiplas linhas de categorias horizontais
+- Cards com hover/focus scale
+- Scroll horizontal animado
+- Scroll infinito vertical com carregamento automático
+
+-----------------------------------------------------
+
+LAZY LOAD E SCROLL INFINITO
+
+- Todos os posters/imagens devem utilizar lazy loading
+- Conteúdo das listas deve carregar incrementalmente
+- Implementar scroll infinito simulando paginação
+- Skeleton loaders durante carregamento
+- Pré-carregamento progressivo das próximas linhas
+
+-----------------------------------------------------
+
+PLAYER
+
+- Player full screen
+- Overlay com:
+  - Nome do canal/conteúdo
+  - Qualidade simulada
+  - Indicador de conexão
+  - Botões: voltar, favoritos, qualidade
+- Overlay desaparecendo automaticamente após alguns segundos
+- Botão para retornar à Home
+
+-----------------------------------------------------
+
+INTERAÇÃO
+
+- Clique em card abre player
+- Simular troca de canal/conteúdo
+- Simular favoritos (estado Alpine)
+- Indicador visual de item focado
+- Animações suaves
+
+-----------------------------------------------------
+
+RESPONSIVIDADE
+
+- Mobile: scroll vertical dominante
+- Desktop: hover e grid adaptativo
+- TV: cards maiores e espaçamentos amplos
+
+-----------------------------------------------------
+
+PLAYER ENGINE
+
+- Integrar hls.js
+- Player deve carregar uma URL HLS pública de exemplo
+- Autoplay ao abrir
+- Mostrar estado buffering / playing
+- Botão play/pause funcional
+
+-----------------------------------------------------
+
+ESTRUTURA ESPERADA
+
+Gerar um único arquivo:
+
+iptv-demo.html
+
+contendo:
+
+- imports CDN no head
+- Tailwind configurado com cor principal indigo-950
+- import da fonte Poppins
+- layout completo
+- estilos necessários
+- scripts Alpine
+- script do player
+- dados simulados de canais, filmes e séries
+- funções de navegação
+- funções de favoritos
+- lazy loading das imagens
+- lógica de scroll infinito
+- funções do overlay do player
+
+-----------------------------------------------------
+
+IMPORTANTE
+
+- Interface deve parecer produto real e não wireframe
+- Layout moderno estilo streaming profissional
+- Código comentado explicando cada parte
+- Simular múltiplas categorias com dados mock
+- Não dividir em múltiplos arquivos
+- Gerar demo pronta para abrir diretamente no navegador

@@ -1,0 +1,9 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Modules\{{MODULE}}\Controllers\{{MODULE}}Controller;
+
+
+Route::apiResource('{{MODULE_LOWER_PLURAL}}', {{MODULE}}Controller::class)->parameters([
+    '{{MODULE_LOWER_PLURAL}}' => 'uuid'
+]);

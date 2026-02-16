@@ -1,0 +1,248 @@
+PROMPT ARQUITETURAL – IPTV WEB PLAYER (NÍVEL SÊNIOR)
+
+Você é um Arquiteto de Software Sênior especializado em Streaming, MediaSource Extensions, HLS, Video Delivery e sistemas de alta disponibilidade.
+
+Seu objetivo é projetar uma aplicação IPTV Web baseada em:
+
+- Frontend: Vue 3 + Vite + TypeScript
+- Backend: Laravel (API REST modular baseada em módulos)
+- Player Engine customizado (baseado em HLS.js / MSE)
+- Integração com Xtream Codes e M3U
+- Sistema de buffer adaptativo
+- Seleção automática de qualidade (ABR)
+- Favoritos sincronizados
+- Cache inteligente
+- Alta resiliência a falhas de conexão
+
+Não gere código inicialmente. Estruture arquitetura, módulos, responsabilidades e fluxos.
+
+-----------------------------------------------------
+
+1. OBJETIVO DO SISTEMA
+
+Criar um player IPTV Web desktop com:
+
+- Reprodução fluida
+- Troca rápida de canais (zapping rápido)
+- Buffer inteligente
+- Seleção automática de qualidade
+- Fallback automático de stream
+- Cache de playlists
+- Persistência de favoritos
+- Monitoramento de conexão em tempo real
+
+O sistema deve se comportar como um aplicativo nativo rodando no navegador.
+
+-----------------------------------------------------
+
+2. REQUISITOS FUNCIONAIS
+
+Autenticação IPTV
+- Login via domínio + usuário + senha
+- Suporte a múltiplas contas
+- Persistência segura de credenciais
+
+Streams
+- HLS (.m3u8)
+- Possível suporte a MPEG-DASH
+- Suporte a múltiplas qualidades
+
+Player
+- ABR automático
+- Buffer adaptativo
+- Reconexão automática
+- Retry exponencial
+- Fallback de servidor
+- Monitoramento de throughput
+
+Experiência do Usuário
+- Lista de canais por categoria
+- Busca
+- Favoritos
+- Histórico
+- Último canal assistido
+- Seleção manual de qualidade
+
+-----------------------------------------------------
+
+3. ARQUITETURA GERAL
+
+Camadas
+
+Frontend (SPA)
+- UI
+- Player Engine
+- State Management
+- Network Monitor
+- Cache Manager
+
+Backend (Laravel)
+- IPTV Gateway
+- Playlist Normalizer
+- User Module
+- Favorites Module
+- Analytics Module
+- Stream Proxy (opcional)
+
+-----------------------------------------------------
+
+4. PLAYER ENGINE (CORE DO SISTEMA)
+
+Estados do Player
+
+- IDLE
+- LOADING
+- BUFFERING
+- PLAYING
+- RECONNECTING
+- ERROR
+- SWITCHING_QUALITY
+- SWITCHING_CHANNEL
+
+Submódulos Internos
+
+Stream Manager
+- Resolver URL do stream
+- Validar disponibilidade
+- Gerenciar múltiplas qualidades
+
+Quality Engine (ABR)
+- Medir largura de banda real
+- Calcular bitrate ideal
+- Monitorar buffer
+- Antecipar queda de conexão
+- Evitar oscillation de qualidade
+
+Buffer Controller
+- Ajustar maxBufferLength
+- Ajustar maxMaxBufferLength
+- Preload de segmentos
+- Buffer diferenciado para Live vs VOD
+
+-----------------------------------------------------
+
+5. ESTRATÉGIA DE ADAPTIVE BITRATE (ABR)
+
+Definir algoritmo baseado em:
+
+- Throughput médio ponderado (EWMA)
+- Buffer occupancy
+- Margem de segurança percentual
+- Threshold de downgrade preventivo
+
+Estratégia:
+
+- Iniciar em qualidade média
+- Subir gradualmente
+- Descer rapidamente
+- Evitar troca constante
+
+-----------------------------------------------------
+
+6. TROCA RÁPIDA DE CANAL (FAST ZAP)
+
+Implementar:
+
+- Preload do próximo canal
+- Cancelamento inteligente de requisições
+- Reuso de instância do player
+- Limpeza controlada de buffer
+
+Objetivo:
+Troca inferior a 1 segundo em redes estáveis
+
+-----------------------------------------------------
+
+7. CACHE E PERFORMANCE
+
+Cache de Metadados
+- IndexedDB
+- TTL configurável
+- Atualização incremental
+
+Cache de Segmentos
+- Memory
+- Descarte LRU
+
+-----------------------------------------------------
+
+8. BACKEND – LARAVEL (ESTRUTURA MODULAR)
+
+Módulos
+
+IPTV
+- Gateway (Xtream/M3U)
+- StreamResolver
+- PlaylistNormalizer
+
+Users
+- Authentication
+- Profiles
+
+Favorites
+- CRUD
+- Sincronização multi-device
+
+Analytics
+- Buffer events
+- Bitrate médio
+- Tempo assistido
+- Erros de stream
+
+-----------------------------------------------------
+
+9. RESILIÊNCIA
+
+O sistema deve:
+
+- Detectar stream offline
+- Testar servidor alternativo
+- Aplicar retry exponencial
+- Detectar queda de rede
+- Pausar e retomar automaticamente
+
+-----------------------------------------------------
+
+10. ESCALABILIDADE
+
+Planejar para:
+
+- CDN futura
+- Proxy de stream
+- Multi-tenant
+- Microserviço de analytics
+- Cache Redis
+
+-----------------------------------------------------
+
+11. SEGURANÇA
+
+- Não expor credenciais IPTV no frontend
+- Assinatura temporária de URLs
+- Rate limit
+- Sanitização de playlists
+
+-----------------------------------------------------
+
+12. EXPERIÊNCIA PROFISSIONAL
+
+O player deve:
+
+- Exibir bitrate atual
+- Exibir buffer health
+- Exibir resolução
+- Mostrar status da conexão
+- Permitir modo debug técnico
+
+-----------------------------------------------------
+
+13. ENTREGÁVEIS ESPERADOS NA PRÓXIMA FASE
+
+Gerar:
+
+1. Diagrama arquitetural textual
+2. Fluxo de estados do Player Engine
+3. Especificação do algoritmo ABR
+4. Estrutura de pastas detalhada
+5. Modelo de dados backend
+6. Sequência de desenvolvimento por fases

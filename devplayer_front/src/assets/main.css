@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #dc2626; /* red-600 */
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --font-display: "Poppins", system-ui, sans-serif;
+
+  --animate-scale-up: scale-up 0.3s ease-in-out forwards;
+}
+
+@keyframes scale-up {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-slate-950 text-white font-sans;
+}
+

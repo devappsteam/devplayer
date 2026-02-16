@@ -1,0 +1,172 @@
+# PROMPT TÉCNICO — MIGRAÇÃO M3U → XTREAM JSON (LARAVEL HIGH PERFORMANCE)
+
+Você é um arquiteto backend especialista em Laravel, sistemas distribuídos e alta performance.
+Preciso que você gere uma implementação profissional para migrar minha API IPTV de parsing M3U para consumo via Xtream Codes API (JSON).
+
+====================================================
+📌 CONTEXTO
+====================================================
+
+Atualmente:
+- Minha API Laravel consome playlists M3U
+- Faço parsing manual do arquivo
+- Tenho problemas de performance e memória
+- A base possui +500.000 registros
+
+Objetivo:
+- Eliminar completamente M3U
+- Usar apenas padrão Xtream JSON (player_api.php)
+- Construir arquitetura escalável e otimizada
+
+====================================================
+📌 ENDPOINTS XTREAM QUE DEVEM SER SUPORTADOS
+====================================================
+
+Login:
+player_api.php?username=USER&password=PASS
+
+Categorias:
+action=get_live_categories
+action=get_vod_categories
+action=get_series_categories
+
+Streams:
+action=get_live_streams
+action=get_vod_streams
+action=get_series
+
+====================================================
+📌 REQUISITOS OBRIGATÓRIOS DE PERFORMANCE
+====================================================
+
+1) Nunca carregar todos os registros em memória
+2) Proibido usar:
+   - Model::all()
+   - collect() com dataset completo
+3) Usar:
+   - chunk()
+   - cursor()
+   - cursorPaginate()
+
+4) Implementar:
+   - Jobs + Queue (Redis)
+   - Processamento assíncrono
+   - Cache com Redis
+   - Paginação real
+   - Índices otimizados no banco
+
+====================================================
+📌 ARQUITETURA ESPERADA
+====================================================
+
+Criar:
+
+app/Services/XtreamService.php
+app/Jobs/ImportStreamsJob.php
+app/Http/Controllers/StreamController.php
+
+Separação clara de responsabilidades:
+
+XtreamService:
+- Consome API externa
+- Timeout 10s
+- Retry 3x
+- User-Agent customizado
+
+ImportStreamsJob:
+- Processa streams em chunks
+- Insere via upsert()
+- Evita duplicação
+
+StreamController:
+- Expõe endpoints internos paginados
+
+====================================================
+📌 BANCO DE DADOS OTIMIZADO
+====================================================
+
+Tabela streams:
+
+- id
+- stream_id (index)
+- name (FULLTEXT index)
+- category_id (index)
+- type (index)
+- container_extension
+- added
+- created_at
+- updated_at
+
+Criar índices compostos:
+
+index(category_id, type)
+index(type, stream_id)
+
+====================================================
+📌 CACHE OBRIGATÓRIO
+====================================================
+
+Categorias → 6h
+Listagens paginadas → 5min
+
+Exemplo esperado:
+
+Cache::remember('live_categories', 21600, fn() => ...);
+
+====================================================
+📌 ENDPOINTS INTERNOS DA API
+====================================================
+
+GET /api/live?category=10&page=1
+GET /api/vod?category=5&page=2
+GET /api/series?page=1
+
+Retorno JSON leve:
+
+{
+  "data": [],
+  "current_page": 1,
+  "last_page": 200,
+  "total": 500000
+}
+
+====================================================
+📌 SEGURANÇA
+====================================================
+
+- Nunca expor credenciais Xtream
+- Criar proxy interno
+- Implementar rate limit
+- Validar resposta HTTP (401, 403, 500)
+
+====================================================
+📌 EXTRA (AVANÇADO)
+====================================================
+
+Opcionalmente sugerir:
+
+- ElasticSearch para busca rápida
+- Separação banco leitura/escrita
+- Laravel Horizon
+- Compressão gzip
+- OPcache otimizado
+
+====================================================
+📌 RESULTADO ESPERADO
+====================================================
+
+Gerar:
+
+1) Código completo estruturado
+2) Migrations otimizadas
+3) Service layer
+4) Job de importação
+5) Controller com paginação performática
+6) Estratégia para suportar +500k registros sem gargalo
+
+A implementação deve ser:
+- Profissional
+- Escalável
+- Otimizada para alto volume
+- Seguindo boas práticas SOLID
+- Pronta para produção

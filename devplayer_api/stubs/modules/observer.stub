@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Modules\{{MODULE}}\Observers;
+
+use App\Modules\{{MODULE}}\Models\{{MODULE}};
+
+class {{MODULE}}Observer
+{
+    /**
+     * Handle the {{MODULE}} "creating" event.
+     */
+    public function creating({{MODULE}} ${{MODULE_LOWER}}): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{MODULE}} "created" event.
+     */
+    public function created({{MODULE}} ${{MODULE_LOWER}}): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{MODULE}} "updating" event.
+     */
+    public function updating({{MODULE}} ${{MODULE_LOWER}}): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{MODULE}} "updated" event.
+     */
+    public function updated({{MODULE}} ${{MODULE_LOWER}}): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{MODULE}} "deleting" event.
+     */
+    public function deleting({{MODULE}} ${{MODULE_LOWER}}): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{MODULE}} "deleted" event.
+     */
+    public function deleted({{MODULE}} ${{MODULE_LOWER}}): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{MODULE}} "restoring" event.
+     */
+    public function restoring({{MODULE}} ${{MODULE_LOWER}}): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{MODULE}} "restored" event.
+     */
+    public function restored({{MODULE}} ${{MODULE_LOWER}}): void
+    {
+        //
+    }
+
+    /**
+     * Handle the {{MODULE}} "force deleted" event.
+     */
+    public function forceDeleted({{MODULE}} ${{MODULE_LOWER}}): void
+    {
+        //
+    }
+}
