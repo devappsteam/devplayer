@@ -14,6 +14,9 @@ app.use(router)
 
 const auth = useAuthStore(pinia)
 auth.loadFromStorage()
-auth.fetchMe()
+
+if (auth.token) {
+	auth.ensureValidToken()
+}
 
 app.mount('#app')

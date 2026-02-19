@@ -83,9 +83,7 @@ export const useContentStore = defineStore('content', () => {
   const loadFavoritesFromAPI = async () => {
     const auth = useAuthStore();
     try {
-      const response = await fetch(`${API_BASE_URL}/favorites/me`, {
-        headers: { ...auth.authHeaders() }
-      });
+      const response = await auth.authenticatedFetch(`${API_BASE_URL}/favorites/me`);
       if (!response.ok) return [];
       const result = await response.json();
       return (result.data || []).map((fav: any) => ({
@@ -127,11 +125,10 @@ export const useContentStore = defineStore('content', () => {
         stream_type: streamTypeMap[item.type] || 'live',
       };
 
-      const response = await fetch(`${API_BASE_URL}/favorites/me/toggle`, {
+      const response = await auth.authenticatedFetch(`${API_BASE_URL}/favorites/me/toggle`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...auth.authHeaders(),
         },
         body: JSON.stringify(payload),
       });

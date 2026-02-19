@@ -8,6 +8,7 @@ const USER_KEY = 'devplayer.auth.user';
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(null);
   const user = ref<any | null>(null);
+  let refreshPromise: Promise<boolean> | null = null;
 
   const isAuthenticated = computed(() => !!token.value);
 
@@ -35,6 +36,73 @@ export const useAuthStore = defineStore('auth', () => {
 
   const authHeaders = (): Record<string, string> => {
     return token.value ? { Authorization: `Bearer ${token.value}` } : {};
+  };
+
+  const clearAuth = () => {
+    token.value = null;
+    user.value = null;
+    saveToStorage();
+  };
+
+  const refreshToken = async (): Promise<boolean> => {
+    if (!token.value) return false;
+
+    if (refreshPromise) {
+      return refreshPromise;
+    }
+
+    refreshPromise = (async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { ...authHeaders() }
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data?.data?.token) {
+          clearAuth();
+          return false;
+        }
+
+        token.value = data.data.token;
+        saveToStorage();
+        return true;
+      } catch {
+        clearAuth();
+        return false;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+
+    return refreshPromise;
+  };
+
+  const authenticatedFetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
+    const headers = {
+      ...(init.headers || {}),
+      ...authHeaders(),
+    } as Record<string, string>;
+
+    let response = await fetch(input, {
+      ...init,
+      headers,
+    });
+
+    if (response.status === 401 && token.value) {
+      const refreshed = await refreshToken();
+      if (refreshed) {
+        response = await fetch(input, {
+          ...init,
+          headers: {
+            ...(init.headers || {}),
+            ...authHeaders(),
+          },
+        });
+      }
+    }
+
+    return response;
   };
 
   const login = async (email: string, password: string) => {
@@ -74,28 +142,40 @@ export const useAuthStore = defineStore('auth', () => {
   const fetchMe = async () => {
     if (!token.value) return;
 
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
-      headers: { ...authHeaders() }
-    });
+    const response = await authenticatedFetch(`${API_BASE_URL}/auth/me`);
 
     if (response.ok) {
       const data = await response.json();
       user.value = data.data;
       saveToStorage();
+      return;
+    }
+
+    if (response.status === 401) {
+      clearAuth();
     }
   };
 
   const logout = async () => {
     if (token.value) {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
+      await authenticatedFetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
-        headers: { ...authHeaders() }
       });
     }
 
-    token.value = null;
-    user.value = null;
-    saveToStorage();
+    clearAuth();
+  };
+
+  const ensureValidToken = async () => {
+    if (!token.value) return false;
+
+    const refreshed = await refreshToken();
+    if (!refreshed) {
+      return false;
+    }
+
+    await fetchMe();
+    return !!token.value;
   };
 
   return {
@@ -103,9 +183,12 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isAuthenticated,
     authHeaders,
+    authenticatedFetch,
     loadFromStorage,
     login,
     register,
+    refreshToken,
+    ensureValidToken,
     fetchMe,
     logout,
   };
